@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "outDir": "./build",
+    "strict": true,
+    "baseUrl": "./",
+    "lib": ["es2020"],
+    "typeRoots": ["node_modules/@types"],
+    "types": ["node", "jest"],
+    "esModuleInterop": true,
+    "inlineSourceMap": true
+  },
+  "include": ["src/**/*"]
+}
