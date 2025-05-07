@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@smithy/types": "^4.2.0",
+    "@types/figlet": "^1.7.0",
     "@types/jest": "^29.5.4",
     "@types/node": "^22.x",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
@@ -35,5 +36,11 @@
   "engines": {
     "node": "=22",
     "npm": "=10"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "boxen": "^8.0.1",
+    "bullmq": "^5.52.1",
+    "figlet": "^1.8.1"
   }
 }
