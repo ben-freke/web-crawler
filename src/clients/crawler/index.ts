@@ -70,9 +70,6 @@ export class Crawler {
         const body = await this.getBodyFromUrl(url);
         const filteredUrls = this.extractUrlsFromBody(body);
 
-        // Add the filtered URLs to the URL Set
-        filteredUrls.forEach((url) => this.urlSet.add(url));
-
         // If we've not reached the crawl limit, add the filtered URLs to the queue to continue crawling
         if (this.crawlLimit === -1 || this.urlSet.size < this.crawlLimit) {
             filteredUrls.forEach((url) => this.addUrlToQueue(url));
