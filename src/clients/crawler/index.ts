@@ -22,7 +22,7 @@ export class Crawler {
     ) {
         this.targetDomain = targetDomain.toLowerCase();
         this.startPage = startPage?.toLowerCase() || `https://${this.targetDomain}`;
-        this.crawlLimit = crawlLimit || -1;
+        this.crawlLimit = crawlLimit ?? -1;
 
         // Sourced from https://stackoverflow.com/questions/6038061/regular-expression-to-find-urls-within-a-string
         this.regExp = regExOverride ||
@@ -101,6 +101,9 @@ export class Crawler {
             await this.worker.close();
             await this.queue.close();
             process.exit(0);
+            // This is a controlled shutdown and is necessary to stop the application explicitly.
+            // Otherwise the worker will continue to listen indefinitely.
+            // In a real-world application, we might want to handle this differently.
         }
     }
 
