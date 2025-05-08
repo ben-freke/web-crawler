@@ -1,6 +1,6 @@
 import axios from "axios";
-import { Connection } from "./types";
-import { Queue, Worker, Job } from 'bullmq';
+import {Connection} from "./types";
+import {Job, Queue, Worker} from 'bullmq';
 import crypto from "crypto";
 import {printError, printInfo, printTable} from "../../helpers/cli-printer";
 
@@ -19,7 +19,13 @@ export class Crawler {
 
     constructor(
         {targetDomain, startPage, regExOverride, crawlLimit, connection}:
-        {targetDomain: string, startPage?: string, regExOverride?: RegExp, crawlLimit?: number, connection?: Connection}
+            {
+                targetDomain: string,
+                startPage?: string,
+                regExOverride?: RegExp,
+                crawlLimit?: number,
+                connection?: Connection
+            }
     ) {
         this.targetDomain = targetDomain.toLowerCase();
         this.startPage = startPage?.toLowerCase() || `https://${this.targetDomain}`;
@@ -27,6 +33,7 @@ export class Crawler {
 
         // Sourced from https://stackoverflow.com/questions/6038061/regular-expression-to-find-urls-within-a-string
         this.regExp = regExOverride ||
+            // eslint-disable-next-line no-useless-escape
             new RegExp(/(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$])/igm)
 
         this.urlSet = new Set<string>();
@@ -113,7 +120,7 @@ export class Crawler {
         const inProgress = counts.active + counts.waiting + counts.delayed;
 
         if (inProgress === 0) {
-            console.log(this.urlSet)
+            // console.log(this.urlSet)
             console.log('All jobs processed. Closing...');
             await this.worker.close();
             await this.queue.close();

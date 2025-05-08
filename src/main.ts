@@ -1,6 +1,7 @@
-import { Crawler } from "./clients/crawler";
+import {Crawler} from "./clients/crawler";
 import {printInfo, printTitle} from "./helpers/cli-printer";
 import {getArgs} from "./helpers/argument-parser";
+
 export const main = async (): Promise<void> => {
 
     printTitle('Web Crawler');

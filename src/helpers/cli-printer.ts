@@ -30,7 +30,7 @@ export const printWarning = (message: string) =>
 export const printError = (message: string) =>
     console.log(chalk.hex(colors.error).bold.inverse(message));
 
-export const printTable = ({headers, widths, rows}: {headers: string[], widths: number[], rows: string[][]}) => {
+export const printTable = ({headers, widths, rows}: { headers: string[], widths: number[], rows: string[][] }) => {
     const table = new Table({
         head: headers,
         colWidths: widths,

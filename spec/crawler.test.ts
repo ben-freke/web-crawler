@@ -1,6 +1,6 @@
-import { Crawler } from '../src/clients/crawler';
+import {Crawler} from '../src/clients/crawler';
 import axios from 'axios';
-import { Queue, Worker } from 'bullmq';
+import {Queue, Worker} from 'bullmq';
 
 // Mock axios
 jest.mock('axios');
@@ -18,7 +18,7 @@ jest.mock('bullmq', () => ({
         obliterate: jest.fn().mockResolvedValue(undefined),
         close: jest.fn().mockResolvedValue(undefined),
         pause: jest.fn().mockResolvedValue(undefined),
-        getJobCounts: jest.fn().mockResolvedValue({ active: 0, waiting: 0, delayed: 0 })
+        getJobCounts: jest.fn().mockResolvedValue({active: 0, waiting: 0, delayed: 0})
     })),
     Worker: jest.fn().mockImplementation(() => ({
         on: jest.fn(),
@@ -46,7 +46,7 @@ describe('Crawler', () => {
 
     describe('constructor', () => {
         it('should initialize with default values', () => {
-            const defaultCrawler = new Crawler({ targetDomain: mockTargetDomain });
+            const defaultCrawler = new Crawler({targetDomain: mockTargetDomain});
             expect(defaultCrawler['startPage']).toBe(`https://${mockTargetDomain}`);
             expect(defaultCrawler['crawlLimit']).toBe(-1);
         });
@@ -60,7 +60,7 @@ describe('Crawler', () => {
     describe('getBodyFromUrl', () => {
         it('should fetch and return page body', async () => {
             const mockBody = '<html><body>Test content</body></html>';
-            mockedAxios.get.mockResolvedValueOnce({ data: mockBody });
+            mockedAxios.get.mockResolvedValueOnce({data: mockBody});
 
             const result = await crawler.getBodyFromUrl(mockStartPage);
             expect(result).toBe(mockBody);
@@ -105,7 +105,7 @@ describe('Crawler', () => {
             const queue = crawler['queue'] as jest.Mocked<Queue>;
             expect(queue.add).toHaveBeenCalledWith(
                 'Crawler',
-                { url: mockUrl },
+                {url: mockUrl},
                 expect.objectContaining({
                     jobId: expect.any(String),
                     removeOnComplete: false,
@@ -121,7 +121,7 @@ describe('Crawler', () => {
                 <a href="https://example.com/page1">Link 1</a>
                 <a href="https://example.com/page2">Link 2</a>
             `;
-            mockedAxios.get.mockResolvedValueOnce({ data: mockBody });
+            mockedAxios.get.mockResolvedValueOnce({data: mockBody});
 
             const addUrlToQueueSpy = jest.spyOn(crawler, 'addUrlToQueue');
             await crawler.crawlPage(mockStartPage);
@@ -140,7 +140,7 @@ describe('Crawler', () => {
                 <a href="https://example.com/page1">Link 1</a>
                 <a href="https://example.com/page2">Link 2</a>
             `;
-            mockedAxios.get.mockResolvedValueOnce({ data: mockBody });
+            mockedAxios.get.mockResolvedValueOnce({data: mockBody});
 
             const addUrlToQueueSpy = jest.spyOn(crawlerWithLimit, 'addUrlToQueue');
             await crawlerWithLimit.crawlPage(mockStartPage);
@@ -153,10 +153,10 @@ describe('Crawler', () => {
         it('should start crawl from start page', async () => {
             const addUrlToQueueSpy = jest.spyOn(crawler, 'addUrlToQueue');
             const queue = crawler['queue'] as jest.Mocked<Queue>;
-            
+
             // Mock the queue to be paused before obliterate
             queue.pause.mockResolvedValueOnce(undefined);
-            
+
             await crawler.startCrawl();
 
             expect(queue.pause).toHaveBeenCalled();
@@ -168,17 +168,17 @@ describe('Crawler', () => {
     describe('cleanup', () => {
         it('should close worker and queue when no jobs are in progress', async () => {
             jest.useFakeTimers();
-            
+
             const cleanupPromise = crawler.cleanup();
             jest.advanceTimersByTime(10000);
-            
+
             const worker = crawler['worker'] as jest.Mocked<Worker>;
             const queue = crawler['queue'] as jest.Mocked<Queue>;
-            
+
             await expect(cleanupPromise).rejects.toThrow('Process.exit called with code 0');
             expect(worker.close).toHaveBeenCalled();
             expect(queue.close).toHaveBeenCalled();
-            
+
             jest.useRealTimers();
         });
     });

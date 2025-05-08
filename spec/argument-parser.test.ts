@@ -1,4 +1,4 @@
-import { getArgs } from '../src/helpers/argument-parser';
+import {getArgs} from '../src/helpers/argument-parser';
 
 describe('Argument Parser', () => {
     let originalArgv: string[];
