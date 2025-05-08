@@ -1,5 +1,6 @@
 import yargs from "yargs";
-import {hideBin} from "yargs/helpers";
+import { hideBin } from "yargs/helpers";
+import { printError } from "./cli-printer";
 
 export type Args = {
     domain: string;
@@ -18,7 +19,9 @@ export const getArgs = (): Args => {
                 const cleanArg = arg.replace(/^(https?:\/\/)/, '').toLowerCase();
                 const domainRegex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/;
                 if (!domainRegex.test(cleanArg)) {
-                    throw new Error('Invalid domain format');
+                    printError(`Invalid domain format: ${arg}`);
+                    yargs.showHelp();
+                    process.exit(1);
                 }
                 return cleanArg;
             },
@@ -33,7 +36,9 @@ export const getArgs = (): Args => {
             coerce: (arg) => {
                 const urlRegex = /^(?:https?:\/\/)?(?:[\w-]+\.)+[\w-]+(?::\d+)?(?:\/[^\s]*)?$/i;
                 if (!urlRegex.test(arg)) {
-                    throw new Error('Invalid start page format');
+                    printError(`Invalid start page format: ${arg}`);
+                    yargs.showHelp();
+                    process.exit(1);
                 }
                 const url = arg.toLowerCase();
                 return url.startsWith('http') ? url : `https://${url}`;
