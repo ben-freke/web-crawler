@@ -7,6 +7,10 @@ export const main = async (): Promise<void> => {
     printTitle('Web Crawler');
 
     const args = getArgs();
+    if (!args.domain) {
+        return;
+    }
+
     printInfo(`Crawling ${args.domain}, starting from ${args.startPage} with the following limit: ${args.crawlLimit === -1 ? 'none' : args.crawlLimit}.`);
 
     const crawlerClient = new Crawler({
