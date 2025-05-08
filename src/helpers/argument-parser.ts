@@ -40,9 +40,10 @@ export const getArgs = (): Args => {
             },
         })
         .exitProcess(false)
-        .fail((msg, err) => {
+        .fail((msg, err, yargs) => {
             if (err) throw err;
-            throw new Error(msg);
+            yargs.showHelp();
+            process.exit(1);
         })
         .parseSync();
 
