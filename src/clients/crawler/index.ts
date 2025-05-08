@@ -1,7 +1,8 @@
 import axios from "axios";
-import { Connection } from "./types";
-import { Queue, Worker, Job } from 'bullmq';
+import {Connection} from "./types";
+import {Job, Queue, Worker} from 'bullmq';
 import crypto from "crypto";
+import {printError, printInfo, printTable} from "../../helpers/cli-printer";
 
 const hashUrl = (url: string): string => crypto.createHash('sha256').update(url).digest('hex')
 
@@ -18,7 +19,13 @@ export class Crawler {
 
     constructor(
         {targetDomain, startPage, regExOverride, crawlLimit, connection}:
-        {targetDomain: string, startPage?: string, regExOverride?: RegExp, crawlLimit?: number, connection?: Connection}
+            {
+                targetDomain: string,
+                startPage?: string,
+                regExOverride?: RegExp,
+                crawlLimit?: number,
+                connection?: Connection
+            }
     ) {
         this.targetDomain = targetDomain.toLowerCase();
         this.startPage = startPage?.toLowerCase() || `https://${this.targetDomain}`;
@@ -26,6 +33,7 @@ export class Crawler {
 
         // Sourced from https://stackoverflow.com/questions/6038061/regular-expression-to-find-urls-within-a-string
         this.regExp = regExOverride ||
+            // eslint-disable-next-line no-useless-escape
             new RegExp(/(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$])/igm)
 
         this.urlSet = new Set<string>();
@@ -57,6 +65,14 @@ export class Crawler {
             .map((url) => url[0])
     }
 
+    public printUrls(source: string, urls: string[]): void {
+        printTable({
+            headers: ['URLs'],
+            widths: [60],
+            rows: urls.map((url) => [url]),
+        })
+    }
+
     public async addUrlToQueue(url: string): Promise<void> {
         this.urlSet.add(url);
         await this.queue.add('Crawler', {url: url}, {
@@ -67,9 +83,11 @@ export class Crawler {
     }
 
     public async crawlPage(url: string): Promise<void> {
+        // mark this URL as visited to respect crawl limit
+        this.urlSet.add(url);
         const body = await this.getBodyFromUrl(url);
         const filteredUrls = this.extractUrlsFromBody(body);
-
+        this.printUrls(url, filteredUrls);
         // If we've not reached the crawl limit, add the filtered URLs to the queue to continue crawling
         if (this.crawlLimit === -1 || this.urlSet.size < this.crawlLimit) {
             filteredUrls.forEach((url) => this.addUrlToQueue(url));
@@ -77,8 +95,17 @@ export class Crawler {
     }
 
     public async startCrawl(): Promise<void> {
-        await this.queue.pause();
-        await this.queue.obliterate();
+        try {
+            await this.queue.pause();
+            await this.queue.obliterate();
+        } catch (e) {
+            printError(`Error while obliterating the queue. This may be because there are active jobs.`);
+            if (e instanceof Error) {
+                printInfo(`${e.message}` || 'Unknown error');
+            }
+            throw (e);
+        }
+
         await this.addUrlToQueue(this.startPage);
     }
 
@@ -93,7 +120,7 @@ export class Crawler {
         const inProgress = counts.active + counts.waiting + counts.delayed;
 
         if (inProgress === 0) {
-            console.log(this.urlSet)
+            // console.log(this.urlSet)
             console.log('All jobs processed. Closing...');
             await this.worker.close();
             await this.queue.close();
