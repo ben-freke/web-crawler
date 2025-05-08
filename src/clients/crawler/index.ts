@@ -2,6 +2,7 @@ import axios from "axios";
 import { Connection } from "./types";
 import { Queue, Worker, Job } from 'bullmq';
 import crypto from "crypto";
+import {printError, printInfo, printTable} from "../../helpers/cli-printer";
 
 const hashUrl = (url: string): string => crypto.createHash('sha256').update(url).digest('hex')
 
@@ -57,6 +58,14 @@ export class Crawler {
             .map((url) => url[0])
     }
 
+    public printUrls(source: string, urls: string[]): void {
+        printTable({
+            headers: ['URLs'],
+            widths: [60],
+            rows: urls.map((url) => [url]),
+        })
+    }
+
     public async addUrlToQueue(url: string): Promise<void> {
         this.urlSet.add(url);
         await this.queue.add('Crawler', {url: url}, {
@@ -67,9 +76,11 @@ export class Crawler {
     }
 
     public async crawlPage(url: string): Promise<void> {
+        // mark this URL as visited to respect crawl limit
+        this.urlSet.add(url);
         const body = await this.getBodyFromUrl(url);
         const filteredUrls = this.extractUrlsFromBody(body);
-
+        this.printUrls(url, filteredUrls);
         // If we've not reached the crawl limit, add the filtered URLs to the queue to continue crawling
         if (this.crawlLimit === -1 || this.urlSet.size < this.crawlLimit) {
             filteredUrls.forEach((url) => this.addUrlToQueue(url));
@@ -77,8 +88,17 @@ export class Crawler {
     }
 
     public async startCrawl(): Promise<void> {
-        await this.queue.pause();
-        await this.queue.obliterate();
+        try {
+            await this.queue.pause();
+            await this.queue.obliterate();
+        } catch (e) {
+            printError(`Error while obliterating the queue. This may be because there are active jobs.`);
+            if (e instanceof Error) {
+                printInfo(`${e.message}` || 'Unknown error');
+            }
+            throw (e);
+        }
+
         await this.addUrlToQueue(this.startPage);
     }
 
